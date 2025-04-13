@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flylo - Cessna 172M Details</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Arial', sans-serif;
+    }
+    
+    body {
+        background-color: #f5f5f5;
+        color: #333;
+    }
+    
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0;
+    }
+    
+    .logo {
+        font-size: 28px;
+        font-weight: bold;
+        color: #3a75c4;
+    }
+    
+    .logo i {
+        margin-right: 5px;
+    }
+    
+    .nav-buttons {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .nav-button {
+        padding: 8px 15px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        color: #3a75c4;
+        border: 1px solid #3a75c4;
+    }
+    
+    .nav-button:hover {
+        background-color: #eef4ff;
+    }
+    
+    .nav-button.primary-button {
+        background-color: #3a75c4;
+        color: white;
+    }
+    
+    .nav-button.primary-button:hover {
+        background-color: #2c5a9c;
+    }
+    
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 20px;
+    }
+    
+    .main-image {
+        width: 100%;
+        height: 400px;
+        background-color: #ddd;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .main-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .image-gallery {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    .gallery-item {
+        background-color: #ddd;
+        border-radius: 15px;
+        height: 190px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .view-all {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background-color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 14px;
+        color: #333;
+        cursor: pointer;
+    }
+    
+    .aircraft-details {
+        margin-top: 30px;
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+    }
+    
+    .details-left h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .airport-info {
+        display: inline-block;
+        background-color: #e0e0e0;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 16px;
+        margin-bottom: 15px;
+        color: #3a75c4;
+        font-weight: bold;
+    }
+    
+    .rating {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .stars {
+        color: #f39c12;
+        margin-right: 10px;
+    }
+    
+    .trip-count {
+        color: #777;
+        font-size: 14px;
+    }
+    
+    .features {
+        margin-bottom: 20px;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .checkbox {
+        width: 20px;
+        height: 20px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-right: 10px;
+        display: inline-block;
+        text-align: center;
+        line-height: 20px;
+        color: #3a75c4;
+    }
+    
+    .host {
+        margin-top: 20px;
+    }
+    
+    .host-header {
+        font-size: 18px;
+        color: #777;
+        margin-bottom: 10px;
+    }
+    
+    .host-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .host-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #ddd;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 15px;
+        overflow: hidden;
+    }
+    
+    .host-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .host-details h3 {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    
+    .host-rating {
+        display: flex;
+        align-items: center;
+    }
+    
+    .requirements {
+        margin-top: 20px;
+    }
+    
+    .requirements h3 {
+        font-size: 18px;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .requirement-item {
+        margin-bottom: 8px;
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .requirement-item::before {
+        content: "•";
+        margin-right: 10px;
+    }
+    
+    .details-right {
+        background-color: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        height: fit-content;
+    }
+    
+    .price {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #3a75c4;
+    }
+    
+    .dry-tag {
+        display: inline-block;
+        background-color: #e0e0e0;
+        padding: 3px 10px;
+        border-radius: 15px;
+        font-size: 14px;
+        margin-left: 10px;
+    }
+    
+    .date-picker {
+        margin: 15px 0;
+    }
+    
+    .date-label {
+        display: block;
+        font-size: 14px;
+        color: #777;
+        margin-bottom: 5px;
+    }
+    
+    .date-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+    
+    .go-flying-btn {
+        width: 100%;
+        padding: 15px;
+        background-color: #3a75c4;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .go-flying-btn i {
+        margin-left: 10px;
+    }
+    
+    .go-flying-btn:hover {
+        background-color: #2c5a9c;
+    }
+    
+    .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: #3a75c4;
+        text-decoration: none;
+    }
+    
+    .back-link:hover {
+        text-decoration: underline;
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-plane"></i> Flylo
+            </div>
+            <div class="nav-buttons">
+                <a href="#" class="nav-button primary-button">Find an Instructor</a>
+                <a href="#" class="nav-button">Sign In</a>
+                <a href="#" class="nav-button">List My Airplane</a>
+            </div>
+        </header>
+        
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to listings</a>
+        
+        <div class="details-grid">
+            <div class="main-image">
+                <img src="https://planephd.com/static/acftref/2072418_1.jpg" alt="Cessna 172M">
+            </div>
+            <div class="image-gallery">
+                <div class="gallery-item">
+                    <img src="https://www.glasscockpitaviation.com/wp-content/uploads/2024/06/Cessna-172-N61557-scaled.jpg" alt="Cessna 172M Cockpit">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://www.planesales.com.au/Uploads/Listing/Normal/ID01696-8828-5-043-1979-Cessna-172-rebuilt-in-2021.jpg" alt="Cessna 172M Side View">
+                    <div class="view-all">View All</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="aircraft-details">
+            <div class="details-left">
+                <h1>Cessna 172M</h1>
+                <div class="airport-info">KTMB - Miami Executive Airport</div>
+                <div class="rating">
+                    <div class="stars">★★★★★</div>
+                    <div class="trip-count">(136 trips on Flylo)</div>
+                </div>
+                
+                <div class="features">
+                    <div class="feature-item">
+                        <span class="checkbox">✓</span>
+                        <span>GNS 430 GPS</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="checkbox">✓</span>
+                        <span>IFR Current</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="checkbox">✓</span>
+                        <span>2300 Gross Max</span>
+                    </div>
+                </div>
+                
+                <div class="host">
+                    <div class="host-header">HOSTED BY</div>
+                    <div class="host-info">
+                        <div class="host-avatar">
+                            <img src="https://placehold.co/200x200/3a75c4/white?text=G" alt="Host Avatar">
+                        </div>
+                        <div class="host-details">
+                            <h3>Gabriel E. Gonzalez</h3>
+                            <div class="host-rating">
+                                <div class="stars">★★★★★</div>
+                                <div>CFI+MEI</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="requirements">
+                    <h3>REQUIREMENTS</h3>
+                    <div class="requirement-item">100hr PIC or authorized CFI</div>
+                    <div class="requirement-item">Renter's Insurance</div>
+                    <div class="requirement-item">Checkout flight with CFI</div>
+                    <div class="requirement-item">Training allowed</div>
+                </div>
+            </div>
+            
+            <div class="details-right">
+                <div class="price">$175/hr <span class="dry-tag">Dry</span></div>
+                
+                <div class="date-picker">
+                    <label class="date-label">Trip Start</label>
+                    <input type="text" class="date-input" value="4/14/2025 ▼ 10:00am">
+                    
+                    <label class="date-label">Trip End</label>
+                    <input type="text" class="date-input" value="4/17/2025 ▼ 10:00am">
+                </div>
+                
+                <button class="go-flying-btn">GO FLYING <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
