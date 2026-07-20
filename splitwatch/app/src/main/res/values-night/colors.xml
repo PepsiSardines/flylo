@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sw_background">#111116</color>
+    <color name="sw_surface">#1B1B22</color>
+    <color name="sw_surface_alt">#272730</color>
+    <color name="sw_text">#E7E1EA</color>
+    <color name="sw_text_secondary">#C8C3CC</color>
+    <color name="sw_accent">#C5BFFF</color>
+    <color name="sw_accent_on">#211B61</color>
+    <color name="sw_border">#41414B</color>
+    <color name="sw_good">#79D9AA</color>
+    <color name="sw_bad">#FFB4AB</color>
+    <color name="sw_warning">#F2BF72</color>
+</resources>

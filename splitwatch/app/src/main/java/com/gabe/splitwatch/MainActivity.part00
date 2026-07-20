@@ -1,0 +1,180 @@
+package com.gabe.splitwatch;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.text.InputType;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.HorizontalScrollView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.Space;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+public final class MainActivity extends Activity {
+    private enum Screen {
+        HOME,
+        EDITOR,
+        STOPWATCH,
+        HISTORY
+    }
+
+    private DataStore store;
+    private Screen currentScreen = Screen.HOME;
+
+    private String editorTemplateId;
+    private String editorDraftName = "";
+    private final ArrayList<String> editorDraftSplits = new ArrayList<>();
+    private EditText editorNameInput;
+    private final ArrayList<EditText> editorSplitInputs = new ArrayList<>();
+
+    private SplitTemplate activeTemplate;
+    private boolean stopwatchRunning;
+    private boolean stopwatchPaused;
+    private boolean stopwatchFinished;
+    private long stopwatchElapsedBeforeResume;
+    private long stopwatchResumeStartedAt;
+    private int currentSplitIndex;
+    private final ArrayList<Long> recordedSplitMs = new ArrayList<>();
+    private final ArrayList<Long> recordedCumulativeMs = new ArrayList<>();
+
+    private TextView stopwatchTimerView;
+    private TextView stopwatchCurrentSplitView;
+    private TextView stopwatchComparisonView;
+    private LinearLayout stopwatchSplitsContainer;
+    private Button stopwatchStartPauseButton;
+    private Button stopwatchLapButton;
+    private Button stopwatchResetButton;
+
+    private final Handler timerHandler = new Handler(Looper.getMainLooper());
+    private final Runnable timerTick = new Runnable() {
+        @Override
+        public void run() {
+            if (currentScreen == Screen.STOPWATCH && stopwatchTimerView != null) {
+                refreshStopwatchDynamicText();
+                if (stopwatchRunning) {
+                    timerHandler.postDelayed(this, 50L);
+                }
+            }
+        }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        store = new DataStore(this);
+        getWindow().setStatusBarColor(color(R.color.sw_background));
+        getWindow().setNavigationBarColor(color(R.color.sw_background));
+        showHome();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (currentScreen == Screen.STOPWATCH) {
+            refreshStopwatchDynamicText();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        timerHandler.removeCallbacks(timerTick);
+        super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (currentScreen == Screen.HOME) {
+            super.onBackPressed();
+            return;
+        }
+
+        if (currentScreen == Screen.STOPWATCH && hasActiveStopwatchProgress()) {
+            confirmDiscardStopwatch(this::showHome);
+            return;
+        }
+
+        if (currentScreen == Screen.EDITOR) {
+            syncEditorDraft();
+        }
+        showHome();
+    }
+
+    private void showHome() {
+        stopTimerUpdates();
+        clearKeepScreenOn();
+        currentScreen = Screen.HOME;
+
+        LinearLayout content = verticalContainer(20);
+        content.addView(title("Splitwatch", 34));
+        content.addView(bodyText("Custom split timers, saved locally on this phone."));
+        content.addView(space(18));
+
+        Button addButton = primaryButton("Create a split timer");
+        addButton.setOnClickListener(view -> beginCreateTemplate());
+        content.addView(addButton, matchWrap());
+        content.addView(space(22));
+
+        List<SplitTemplate> templates = store.getTemplates();
+        if (templates.isEmpty()) {
+            LinearLayout empty = card();
+            empty.addView(title("No split timers yet", 20));
+            empty.addView(bodyText("Create one, add your steps, and start timing."));
+            content.addView(empty, matchWrap());
+        } else {
+            for (SplitTemplate template : templates) {
+                content.addView(homeTemplateCard(template), matchWrapWithBottom(14));
+            }
+        }
+
+        setContentView(scrollPage(content));
+    }
+
+    private View homeTemplateCard(SplitTemplate template) {
+        LinearLayout card = card();
+        TextView name = title(template.name, 22);
+        card.addView(name);
+
+        TextView splitSummary = bodyText(joinSplits(template.splits));
+        splitSummary.setMaxLines(2);
+        card.addView(splitSummary);
+
+        List<RunRecord> comparableRuns = store.getComparableRuns(template);
+        if (!comparableRuns.isEmpty()) {
+            RunRecord recent = comparableRuns.get(0);
+            RunRecord best = bestRun(comparableRuns);
+            TextView stats = smallText(
+                    "Recent " + formatDuration(recent.totalMs) +
+                            "  •  Best " + formatDuration(best.totalMs)
+            );
+            stats.setPadding(0, dp(10), 0, 0);
+            card.addView(stats);
+        }
+
+        LinearLayout actions = horizontalRow();
+        Button start = primaryButton("Start");
+        Button history = secondaryButton("History");
+        Button edit = secondaryButton("Edit");
+        actions.addView(start, weightedButtonParams());
