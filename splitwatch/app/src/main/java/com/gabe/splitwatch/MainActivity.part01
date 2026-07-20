@@ -1,0 +1,180 @@
+        actions.addView(horizontalGap());
+        actions.addView(history, weightedButtonParams());
+        actions.addView(horizontalGap());
+        actions.addView(edit, weightedButtonParams());
+        actions.setPadding(0, dp(14), 0, 0);
+        card.addView(actions, matchWrap());
+
+        start.setOnClickListener(view -> openStopwatch(template.id));
+        history.setOnClickListener(view -> showHistory(template.id));
+        edit.setOnClickListener(view -> beginEditTemplate(template.id));
+        card.setOnClickListener(view -> openStopwatch(template.id));
+        return card;
+    }
+
+    private void beginCreateTemplate() {
+        editorTemplateId = null;
+        editorDraftName = "";
+        editorDraftSplits.clear();
+        editorDraftSplits.add("First split");
+        renderEditor();
+    }
+
+    private void beginEditTemplate(String templateId) {
+        SplitTemplate template = store.getTemplate(templateId);
+        if (template == null) {
+            showHome();
+            return;
+        }
+        editorTemplateId = template.id;
+        editorDraftName = template.name;
+        editorDraftSplits.clear();
+        editorDraftSplits.addAll(template.splits);
+        renderEditor();
+    }
+
+    private void renderEditor() {
+        stopTimerUpdates();
+        clearKeepScreenOn();
+        currentScreen = Screen.EDITOR;
+        editorSplitInputs.clear();
+
+        LinearLayout content = verticalContainer(20);
+        content.addView(backHeader(editorTemplateId == null ? "New timer" : "Edit timer", this::showHome));
+        content.addView(space(12));
+
+        content.addView(label("Timer name"));
+        editorNameInput = textInput(editorDraftName, "Morning Routine Split");
+        content.addView(editorNameInput, matchWrap());
+        content.addView(space(18));
+
+        LinearLayout splitHeader = horizontalRow();
+        TextView splitTitle = title("Splits", 22);
+        splitHeader.addView(splitTitle, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        Button addSplit = secondaryButton("+ Add split");
+        addSplit.setOnClickListener(view -> {
+            syncEditorDraft();
+            showAddSplitDialog();
+        });
+        splitHeader.addView(addSplit, wrapWrap());
+        content.addView(splitHeader, matchWrap());
+        content.addView(space(8));
+
+        for (int i = 0; i < editorDraftSplits.size(); i++) {
+            content.addView(editorSplitRow(i), matchWrapWithBottom(10));
+        }
+
+        Button save = primaryButton("Save timer");
+        save.setOnClickListener(view -> saveEditorTemplate());
+        content.addView(save, matchWrapWithTop(12));
+
+        if (editorTemplateId != null) {
+            Button delete = destructiveButton("Delete timer and its history");
+            delete.setOnClickListener(view -> confirmDeleteTemplate());
+            content.addView(delete, matchWrapWithTop(10));
+        }
+
+        content.addView(space(24));
+        setContentView(scrollPage(content));
+    }
+
+    private View editorSplitRow(int index) {
+        LinearLayout rowCard = cardCompact();
+
+        LinearLayout top = horizontalRow();
+        TextView number = smallBadge(String.valueOf(index + 1));
+        top.addView(number, wrapWrap());
+        top.addView(horizontalGap());
+
+        EditText input = textInput(editorDraftSplits.get(index), "Split name");
+        editorSplitInputs.add(input);
+        top.addView(input, new LinearLayout.LayoutParams(0, dp(52), 1f));
+        rowCard.addView(top, matchWrap());
+
+        LinearLayout actions = horizontalRow();
+        Button up = compactButton("↑ Up");
+        Button down = compactButton("↓ Down");
+        Button remove = compactButton("Remove");
+        up.setEnabled(index > 0);
+        down.setEnabled(index < editorDraftSplits.size() - 1);
+
+        up.setOnClickListener(view -> {
+            syncEditorDraft();
+            Collections.swap(editorDraftSplits, index, index - 1);
+            renderEditor();
+        });
+        down.setOnClickListener(view -> {
+            syncEditorDraft();
+            Collections.swap(editorDraftSplits, index, index + 1);
+            renderEditor();
+        });
+        remove.setOnClickListener(view -> {
+            syncEditorDraft();
+            if (editorDraftSplits.size() == 1) {
+                toast("A timer needs at least one split.");
+                return;
+            }
+            editorDraftSplits.remove(index);
+            renderEditor();
+        });
+
+        actions.addView(up, weightedButtonParams());
+        actions.addView(horizontalGap());
+        actions.addView(down, weightedButtonParams());
+        actions.addView(horizontalGap());
+        actions.addView(remove, weightedButtonParams());
+        actions.setPadding(0, dp(8), 0, 0);
+        rowCard.addView(actions, matchWrap());
+        return rowCard;
+    }
+
+    private void showAddSplitDialog() {
+        EditText input = textInput("", "New split name");
+        input.setSingleLine(true);
+        int padding = dp(20);
+        LinearLayout wrapper = new LinearLayout(this);
+        wrapper.setPadding(padding, dp(6), padding, 0);
+        wrapper.addView(input, matchWrap());
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Add split")
+                .setView(wrapper)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Add", null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(view -> {
+            String value = input.getText().toString().trim();
+            if (value.isEmpty()) {
+                input.setError("Enter a split name");
+                return;
+            }
+            editorDraftSplits.add(value);
+            dialog.dismiss();
+            renderEditor();
+        }));
+        dialog.getWindow();
+        dialog.show();
+        input.requestFocus();
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+    }
+
+    private void syncEditorDraft() {
+        if (editorNameInput != null) {
+            editorDraftName = editorNameInput.getText().toString();
+        }
+        if (!editorSplitInputs.isEmpty()) {
+            editorDraftSplits.clear();
+            for (EditText input : editorSplitInputs) {
+                editorDraftSplits.add(input.getText().toString());
+            }
+        }
+    }
+
+    private void saveEditorTemplate() {
+        syncEditorDraft();
+        String name = editorDraftName.trim();
+        if (name.isEmpty()) {
+            editorNameInput.setError("Enter a timer name");
+            editorNameInput.requestFocus();
+            return;
+        }
