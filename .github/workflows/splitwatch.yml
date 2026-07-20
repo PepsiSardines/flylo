@@ -1,8 +1,8 @@
 name: Build Splitwatch APK
 
 on:
-  push:
-    branches: [splitwatch-build]
+  pull_request:
+    branches: [main]
     paths:
       - 'splitwatch/**'
       - '.github/workflows/splitwatch.yml'
